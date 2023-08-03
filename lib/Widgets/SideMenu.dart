@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import '../theme/AppColors.dart';
 
 class SideMenu extends StatefulWidget {
-  const SideMenu({super.key});
+  const SideMenu();
 
   @override
   State<SideMenu> createState() => _SideMenuState();

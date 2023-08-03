@@ -107,15 +107,16 @@ class _MenuState extends State<Menu> {
             Expanded(child: SideMenu(), flex: 1),
             Expanded(
               flex: 4,
-              child: FutureBuilder<List<foodModel>>(
-                future: menuItems,
+              child: FutureBuilder(
+                future: getMenu(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return Center(child: CircularProgressIndicator());
                   } else if (snapshot.hasData) {
-                    List<foodModel>? food = snapshot.data;
+                    // List<foodModel>? food = snapshot.data;
                     return ListView.builder(
-                      itemCount: food!.length,
+                      // itemCount: food!.length,
+                      itemCount: 2,
                       itemBuilder: (context, index) {
                         return SingleChildScrollView(
                           child: Container(
@@ -142,7 +143,7 @@ class _MenuState extends State<Menu> {
                                       padding: const EdgeInsets.only(
                                           left: 2.0, top: 2),
                                       child: Text(
-                                        food[index].foodName,
+                                       " food[index].foodName",
                                         style: TextStyle(fontSize: 30),
                                       ),
                                     ),
@@ -152,7 +153,7 @@ class _MenuState extends State<Menu> {
                                         padding:
                                             const EdgeInsets.only(left: 50),
                                         child: Text(
-                                          food[index].foodDescription,
+                                         " food[index].foodDescription",
                                           style: TextStyle(fontSize: 18),
                                         ),
                                       ),
@@ -163,7 +164,7 @@ class _MenuState extends State<Menu> {
                                       mainAxisAlignment: MainAxisAlignment.end,
                                       children: [
                                         Text(
-                                            '\P\S${food[index].foodPrice.toStringAsFixed(2)}'),
+                                            '\P\S{food[index].foodPrice.toStringAsFixed(2)}'),
                                       ],
                                     ),
                                   ),
@@ -190,7 +191,7 @@ getMenu() async {
   Dio dio = Dio();
 
   Response response =
-      await dio.get("https://jsonplaceholder.typicode.com/photos/1");
+      await dio.get("https://56e3-5-155-133-27.ngrok-free.app/api/restaurants/${storage.get<SharedPreferences>().getString('id')}/menu/0");
 
   if (response.statusCode == 200) {
     storage.get<SharedPreferences>().setString('image', response.data['url']);

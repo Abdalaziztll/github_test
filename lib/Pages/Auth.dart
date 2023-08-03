@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:dashbord_rest/localStorage/local.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -8,7 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../theme/AppColors.dart';
 
 class Auth extends StatefulWidget {
-  const Auth({super.key});
+  const Auth();
 
   @override
   State<Auth> createState() => _AuthState();
@@ -86,7 +88,7 @@ class _AuthState extends State<Auth> {
           width: MediaQuery.of(context).size.width,
           child: ElevatedButton(
             onPressed: () async {
-              var state = await sendcode(userCode.text);
+              var state = await sendcode(int.parse( userCode.text));
               if (state) {
                 print(context);
                 Navigator.pushNamed(context, '/AllReservation');
@@ -109,13 +111,21 @@ class _AuthState extends State<Auth> {
   }
 }
 
-sendcode(String code) async {
+sendcode(int code) async {
   Dio dio = Dio();
 
-  Response response = await dio.post("https://", data: {"code": code});
+  Response response = await dio.post("http://56e3-5-155-133-27.ngrok-free.app/login/resturant", data:jsonEncode({"randomCode": code}) 
+  ,options: Options(headers: {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+    'ngrok-skip-browser-warning':'123123',
+    
+  }));
 
   if (response.statusCode == 200) {
-    return response;
+    storage.get<SharedPreferences>().setString("token",response.data['token']);
+    storage.get<SharedPreferences>().setString("id",response.data['restaurantId']);
+    return true;
   } else {
     return false;
   }

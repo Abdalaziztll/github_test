@@ -1,6 +1,13 @@
-import 'package:dashbord_rest/theme/AppColors.dart';
+import 'dart:convert';
+
+import 'package:dashbord_rest/localStorage/local.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
+import 'package:dashbord_rest/theme/AppColors.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 import '../../Widgets/SideMenu.dart';
 
 class Add extends StatefulWidget {
@@ -119,7 +126,7 @@ class _AddState extends State<Add> {
                                 textDirection: TextDirection.rtl,
                                 child: Container(
                                     padding: EdgeInsets.only(top: 8, left: 30),
-                                    child: Text("   رقم الزبون"))),
+                                    child: Text("رقم الزبون"))),
                             SizedBox(
                               width: 150,
                               height: 30,
@@ -259,6 +266,7 @@ class _AddState extends State<Add> {
                             MaterialButton(
                               onPressed: () {
                                 _selectDate();
+
                               },
                               child: Text("لتحديد وقت الحجز اضغط هنا"),
                             ),
@@ -277,6 +285,8 @@ class _AddState extends State<Add> {
         backgroundColor: AppColor.rrrColor,
         focusColor: AppColor.whiteColor,
         onPressed: () {
+            approveReservation(1);
+
           Navigator.pushNamed(context, '/AllReservation');
         },
         label: Text("تأكيد "),
@@ -294,12 +304,16 @@ class _AddState extends State<Add> {
 
     if (pickedDate != null && pickedDate != selectedDate) {
       setState(() {
+
+        
         print('pickedDate: $pickedDate');
         selectedDate = pickedDate;
 
         endDate = selectedDate.toString().substring(2, 7);
-        print('endDate: $endDate');
 
+        String date = "${selectedDate!.month}-${selectedDate!.day} ${selectedDate!.hour}:${selectedDate!.minute}";
+        print('endDate: $endDate');
+        print(date);
         _selectTime();
       });
     }
@@ -319,4 +333,152 @@ class _AddState extends State<Add> {
       });
     }
   }
+}
+
+class RequestModel {
+int resturantId;
+int tableId;
+String customerName;
+String customerNumber;
+DateTime reservationDate;
+int numberOfPeople;
+bool isPending;
+bool isAccepted;
+  RequestModel({
+    required this.resturantId,
+    required this.tableId,
+    required this.customerName,
+    required this.customerNumber,
+    required this.reservationDate,
+    required this.numberOfPeople,
+    required this.isPending,
+    required this.isAccepted,
+  });
+
+
+
+
+  RequestModel copyWith({
+    int? resturantId,
+    int? tableId,
+    String? customerName,
+    String? customerNumber,
+    DateTime? reservationDate,
+    int? numberOfPeople,
+    bool? isPending,
+    bool? isAccepted,
+  }) {
+    return RequestModel(
+      resturantId: resturantId ?? this.resturantId,
+      tableId: tableId ?? this.tableId,
+      customerName: customerName ?? this.customerName,
+      customerNumber: customerNumber ?? this.customerNumber,
+      reservationDate: reservationDate ?? this.reservationDate,
+      numberOfPeople: numberOfPeople ?? this.numberOfPeople,
+      isPending: isPending ?? this.isPending,
+      isAccepted: isAccepted ?? this.isAccepted,
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    final result = <String, dynamic>{};
+  
+    result.addAll({'resturantId': resturantId});
+    result.addAll({'tableId': tableId});
+    result.addAll({'customerName': customerName});
+    result.addAll({'customerNumber': customerNumber});
+    result.addAll({'reservationDate': reservationDate.millisecondsSinceEpoch});
+    result.addAll({'numberOfPeople': numberOfPeople});
+    result.addAll({'isPending': isPending});
+    result.addAll({'isAccepted': isAccepted});
+  
+    return result;
+  }
+
+  factory RequestModel.fromMap(Map<String, dynamic> map) {
+    return RequestModel(
+      resturantId: map['resturantId']?.toInt() ?? 0,
+      tableId: map['tableId']?.toInt() ?? 0,
+      customerName: map['customerName'] ?? '',
+      customerNumber: map['customerNumber'] ?? '',
+      reservationDate: DateTime.fromMillisecondsSinceEpoch(map['reservationDate']),
+      numberOfPeople: map['numberOfPeople']?.toInt() ?? 0,
+      isPending: map['isPending'] ?? false,
+      isAccepted: map['isAccepted'] ?? false,
+    );
+  }
+
+  String toJson() => json.encode(toMap());
+
+  factory RequestModel.fromJson(String source) => RequestModel.fromMap(json.decode(source));
+
+  @override
+  String toString() {
+    return 'RequestModel(resturantId: $resturantId, tableId: $tableId, customerName: $customerName, customerNumber: $customerNumber, reservationDate: $reservationDate, numberOfPeople: $numberOfPeople, isPending: $isPending, isAccepted: $isAccepted)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+  
+    return other is RequestModel &&
+      other.resturantId == resturantId &&
+      other.tableId == tableId &&
+      other.customerName == customerName &&
+      other.customerNumber == customerNumber &&
+      other.reservationDate == reservationDate &&
+      other.numberOfPeople == numberOfPeople &&
+      other.isPending == isPending &&
+      other.isAccepted == isAccepted;
+  }
+
+  @override
+  int get hashCode {
+    return resturantId.hashCode ^
+      tableId.hashCode ^
+      customerName.hashCode ^
+      customerNumber.hashCode ^
+      reservationDate.hashCode ^
+      numberOfPeople.hashCode ^
+      isPending.hashCode ^
+      isAccepted.hashCode;
+  }
+}
+
+Future<int>approveReservation(int tableId) async{
+
+ String token= storage.get<SharedPreferences>().getString('token')!;
+ Dio dio = Dio();
+
+ try{
+
+  Response response = await dio.post("http://56e3-5-155-133-27.ngrok-free.app/api/restaurants/${
+storage.get<SharedPreferences>().getString("id")}/tables/$tableId",data: {
+  ""
+});
+
+debugPrint(response.data.toString());
+
+return response.statusCode!;
+
+//return response.statusMessage;
+//return response.data["message"];
+
+ }on DioError catch(e)
+ {
+
+  if(e.response!=null)
+  {
+    return e.response!.statusCode!;
+
+  }
+
+  else
+  {
+    return 600;
+  }
+
+
+ }
+
 }

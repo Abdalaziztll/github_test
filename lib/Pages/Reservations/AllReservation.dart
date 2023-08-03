@@ -1,17 +1,19 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:convert';
 
+import 'package:dashbord_rest/localStorage/local.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 
 import 'package:dashbord_rest/theme/AppColors.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../Widgets/SideMenu.dart';
 
 // import 'package:http/http.dart' as http;
 
 class AllReservation extends StatefulWidget {
-  const AllReservation({super.key});
+  const AllReservation();
 
   @override
   State<AllReservation> createState() => _AllReservationState();
@@ -247,7 +249,7 @@ class _AllReservationState extends State<AllReservation> {
                       },
                     );
                   else {
-                    return CircularProgressIndicator();
+                    return Center(child: CircularProgressIndicator());
                   }
                 }),
           ),
@@ -265,12 +267,14 @@ class _AllReservationState extends State<AllReservation> {
   }
 }
 
+
 getResarvation() async {
   Dio dio = Dio();
 
   Response response =
-      await dio.get("https://jsonplaceholder.typicode.com/posts/1");
-  // posts.fromJson(response.data);
+      await dio.get("https://56e3-5-155-133-27.ngrok-free.app/reservations/${
+storage.get<SharedPreferences>().getString("id")}");
+  print(response.data);
   return response.data;
   // return response;
 }
